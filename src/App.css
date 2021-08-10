@@ -1,0 +1,42 @@
+.App-Container {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.Board-Container {
+  display: flex;
+  flex-direction: column;
+}
+
+.Board-Row {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+.Board-Square {
+  display: flex;
+  flex: 0 1 25%;
+  justify-content: center;
+  align-items: center;
+  background-color: #ccc;
+  font-size: 1em;
+  font-weight: 600;
+  color: #494949;
+  height: 4em;
+  width: 4em;
+  border-radius: 1em;
+  margin: 0.15em;
+  padding: 0.25em;
+}
+
+.Board-Square:hover {
+  cursor: pointer;
+  opacity: 0.85;
+}
+
