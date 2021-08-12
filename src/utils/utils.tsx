@@ -23,9 +23,9 @@ export class TicTacToe implements GameBoard {
   }
 
   initialize(): void {
-    for(let i = 0; i < this.cols; i++) {
+    for (let i = 0; i < this.cols; i++) {
       this.board[i] = [];
-      for(let j = 0; j < this.rows; j++) {
+      for (let j = 0; j < this.rows; j++) {
         this.board[i][j] = Player.BLANK;
       }
     }
@@ -38,16 +38,16 @@ export class TicTacToe implements GameBoard {
   }
 
   incrementPlayerScore(player: Player): void {
-    if(player === Player.O) {
+    if (player === Player.O) {
       this.score = [this.score[0], this.score[1]++];
-    } else if(player === Player.X) {
+    } else if (player === Player.X) {
       this.score = [this.score[0]++, this.score[1]];
     }
   }
 
   fillSquare = (row: number, col: number, player: Player) => {
     const isEmpty = this.isSquareEmpty(row, col);
-    if(isEmpty) {
+    if (isEmpty) {
       this.board[row][col] = player;
     }
   }
@@ -57,18 +57,18 @@ export class TicTacToe implements GameBoard {
     let col = 0;
     let isWin = false;
     let checkedRows = false;
-    let previousValue = this.board[row][col]; 
-    while(!checkedRows) {
+    let previousValue = this.board[row][col];
+    while (!checkedRows) {
       let currentValue = this.board[row][col++];
-      if(previousValue !== currentValue) {
-        if(row === this.board.length-1) {
+      if (previousValue !== currentValue) {
+        if (row === this.board.length - 1) {
           break;
         } else {
           col = 0;
           row++;
           previousValue = this.board[row][col];
-        }       
-      } else if(col === this.board[row].length-1) {
+        }
+      } else if (col === this.board[row].length - 1) {
         return true;
       }
     }
@@ -76,18 +76,18 @@ export class TicTacToe implements GameBoard {
     let checkedCols = false;
     row = 0;
     col = 0;
-    previousValue = this.board[row][col]; 
-    while(!checkedCols) {
+    previousValue = this.board[row][col];
+    while (!checkedCols) {
       let currentValue = this.board[row++][col];
-      if(previousValue !== currentValue) {
-        if(col === this.board.length-1) {
+      if (previousValue !== currentValue) {
+        if (col === this.board.length - 1) {
           break;
         } else {
           col++;
           row = 0;
           previousValue = this.board[row][col];
-        }       
-      } else if(row === this.board.length-1) {
+        }
+      } else if (row === this.board.length - 1) {
         return true;
       }
     }
@@ -101,34 +101,34 @@ export class TicTacToe implements GameBoard {
     let isWin = true;
     let previous = this.board[row][col];
     let checkedLeftDiagonal = false;
-    while(!checkedLeftDiagonal) {
+    while (!checkedLeftDiagonal) {
       let current = this.board[row++][col++];
-      if(previous !== current) {
+      if (previous !== current) {
         isWin = false;
         break;
       }
-      if(row === this.board.length-1) {
+      if (row === this.board.length - 1) {
         checkedLeftDiagonal = true;
       }
       previous = current;
     }
 
-    if(isWin) {
+    if (isWin) {
       return true;
     }
 
     row = 0;
-    col = this.board.length-1;
+    col = this.board.length - 1;
     isWin = true;
     previous = this.board[row][col]
     let checkedRightDiagonal = false;
-    while(!checkedRightDiagonal) {
+    while (!checkedRightDiagonal) {
       let current = this.board[row++][col--];
-      if(previous !== current) {
+      if (previous !== current) {
         isWin = false;
         break;
       }
-      if(col === 0) {
+      if (col === 0) {
         checkedRightDiagonal = true;
       }
       previous = current;
@@ -156,9 +156,9 @@ export class TicTacToe implements GameBoard {
 
   getAvailablePositions(): number[][] {
     const positions = [];
-    for(let i = 0; i < this.cols; i++) {
-      for(let j = 0; j < this.rows; j++) {
-        if(this.board[i][j] === Player.BLANK) {
+    for (let i = 0; i < this.cols; i++) {
+      for (let j = 0; j < this.rows; j++) {
+        if (this.board[i][j] === Player.BLANK) {
           positions.push([i, j]);
         }
       }
@@ -172,9 +172,9 @@ export class TicTacToe implements GameBoard {
 
   printBoard(): void {
     let str = "- - - - -";
-    for(let i = 0; i < this.cols; i++) {
+    for (let i = 0; i < this.cols; i++) {
       str += "\n| ";
-      for(let j = 0; j < this.rows; j++) {
+      for (let j = 0; j < this.rows; j++) {
         str += this.board[i][j] + " ";
       }
       str += "|";
@@ -193,9 +193,9 @@ export class TicTacToe implements GameBoard {
   }
 
   resetBoard(): void {
-    for(let i = 0; i < this.cols; i++) {
+    for (let i = 0; i < this.cols; i++) {
       this.board[i] = [];
-      for(let j = 0; j < this.rows; j++) {
+      for (let j = 0; j < this.rows; j++) {
         this.board[i][j] = Player.BLANK;
       }
     }
