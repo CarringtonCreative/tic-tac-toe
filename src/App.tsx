@@ -2,18 +2,30 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import GameManager, { GAME_STATE } from './GameManager';
 
+const gameManager = new GameManager();
+
 function App() {
-  const [gameManager] = useState(new GameManager());
   const [gameState, setGameState] = useState(GAME_STATE.START);
+  const [gameBoard, setGameBoard] = useState(gameManager.getGame());
 
   useEffect(() => {
     gameManager.startGame();
-  })
+    const board = gameManager.getGame();
+    setGameBoard(board);
+  }, [gameManager]);
+
+  const onCheckForWinner = (hasWinner: boolean) => {
+    alert(`Do we have a winner ${hasWinner}`);
+  }
 
   const onSquareClick = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     const target = event.target as HTMLDivElement;
     const { row, col } = target.dataset;
-    gameManager.updateSquare(Number(row), Number(col));
+    const updated = gameManager.updateSquare(Number(row), Number(col), onCheckForWinner);
+    if (updated) {
+      const board = gameManager.getGame();
+      setGameBoard(board);
+    }
   }
 
   const onUpdateGameState = (gameState: string): void => {
@@ -22,8 +34,7 @@ function App() {
     setGameState(newState);
   }
 
-  const renderBoard = () => {
-    const gameBoard = gameManager.game.getBoard();
+  const renderBoard = (gameBoard: [string[]]) => {
     return (
       <div className="Board-Container">
         {gameBoard.map((row, rowIndex) =>
@@ -32,9 +43,9 @@ function App() {
               return (
                 <div
                   key={`col-${colIndex}`}
+                  className="Board-Square"
                   data-col={colIndex}
                   data-row={rowIndex}
-                  className="Board-Square"
                   onClick={(event) => { onSquareClick(event) }}>
                   {col}
                 </div>
@@ -61,7 +72,7 @@ function App() {
   return (
     <div className="App-Container">
       <h2>Tic Tac Toe</h2>
-      {renderBoard()}
+      {renderBoard(gameBoard)}
     </div>
   );
 }

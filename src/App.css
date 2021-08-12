@@ -25,14 +25,14 @@
   justify-content: center;
   align-items: center;
   background-color: #ccc;
-  font-size: 1em;
-  font-weight: 600;
+  font-size: 1.25em;
+  font-weight: 800;
   color: #494949;
   height: 4em;
   width: 4em;
   border-radius: 1em;
   margin: 0.15em;
-  padding: 0.25em;
+  padding: 0.15em;
 }
 
 .Board-Square:hover {

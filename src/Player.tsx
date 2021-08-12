@@ -10,7 +10,7 @@ export default class Player {
   name: string;
   wins: number;
   loses: number;
-  symbol: string | PLAYER_SYMBOL;
+  private symbol: string | PLAYER_SYMBOL;
 
   constructor(name?: string, symbol?: string | PLAYER_SYMBOL, wins: number = 0, loses: number = 0) {
     this.id = uuidv4();
@@ -18,6 +18,10 @@ export default class Player {
     this.symbol = symbol || '';
     this.wins = wins;
     this.loses = loses;
+  }
+
+  getSymbol = () => {
+    return this.symbol;
   }
 
   setSymbol = (symbol: string | PLAYER_SYMBOL): void => {

@@ -40,7 +40,7 @@ export default class TicTacToe implements GameBoard {
   onFillSquare = (row: number, col: number, player: Player): boolean => {
     const isEmpty = this.isEmptySquare(row, col);
     if (!isEmpty) return false;
-    this.board[row][col] = player.symbol;
+    this.board[row][col] = player.getSymbol();
     return true;
   }
 
