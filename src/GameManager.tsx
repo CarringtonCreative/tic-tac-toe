@@ -8,8 +8,8 @@ export const GAME_STATE = {
 };
 
 export default class GameManager {
-  game: TicTacToe;
-  players: [Player, Player];
+  private game: TicTacToe;
+  private players: [Player, Player];
   state: string;
   score: [number, number];
   timer: number;
@@ -102,12 +102,29 @@ export default class GameManager {
     return this.game.getBoard();
   }
 
+  getPlayers = (): [Player, Player] => {
+    return Object.assign([...this.players]);
+  }
+
+  getPlayer = (index: number): Player => {
+    return Object.assign({ ...this.players[index] });
+  }
+
   getPlayersBasedOnTurn = (turn: number): Player => {
     return this.turn === 0 ? this.players[0] : this.players[1];
   }
 
   getTimer = (): number => {
     return this.timer;
+  }
+
+  initializePlayers = () => {
+    if (this.players[0] && !this.players[0].getSymbol()) {
+      this.players[0].setSymbol('x')
+    }
+    if (this.players[1] && !this.players[1].getSymbol()) {
+      this.players[1].setSymbol('o')
+    }
   }
 
   isAxialWin = (row: number, col: number, board: [string[]], symbol: string): boolean => {
@@ -139,9 +156,8 @@ export default class GameManager {
     this.startTimer(interval, () => {
       this.timer += interval;
     });
-    this.players[0].setSymbol('x')
-    this.players[1].setSymbol('o');
     this.game.initialize();
+    this.initializePlayers();
   }
 
   startTimer = (interval: number, callback: Function): number => {
@@ -152,6 +168,22 @@ export default class GameManager {
     clearInterval(timerId);
   }
 
+  updatePlayerSymbol = (playerIndex: number, newSymbol: string) => {
+    const player = this.players[playerIndex];
+    if (player) {
+      const board = this.game.getBoard();
+      const oldSymbol = player.getSymbol();
+      player.setSymbol(newSymbol);
+      for (let row = 0; row < board.length; row++) {
+        for (let col = 0; col < board[row].length; col++) {
+          const square = board[row][col];
+          if (square == oldSymbol) {
+            this.game.onOverrideSquare(row, col, player);
+          }
+        }
+      }
+    }
+  }
 
   updateSquare = (row: number, col: number, callback: Function): boolean => {
     const player = this.getPlayersBasedOnTurn(this.turn);
