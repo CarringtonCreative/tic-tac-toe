@@ -12,7 +12,8 @@ export default class GameTimer {
   }
 
   private format = (): string => {
-    // milliseconds / seconds / minutes / hours, ex: 100000 / 1000 / 60 / 60
+    // derivation: milliseconds / seconds / minutes / hours
+    // ex: 100000 / 1000 / 60 / 60
     const time = this.time ? Number(this.time) / 1000 : this.time;
     const seconds = time % 60;
     const minutes = Math.floor(time / 60) % 60;
@@ -46,9 +47,11 @@ export default class GameTimer {
     return window.setInterval(callback, interval);
   };
 
-  stop = (): void => {
+  stop = (callback: Function): void => {
     clearInterval(this.timerId);
     this.reset();
+    const formatedTime = this.format();
+    callback({ time: this.time, formatedTime });
   };
 
   reset = (): void => {

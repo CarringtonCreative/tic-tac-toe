@@ -1,23 +1,23 @@
 import Player from "./Player";
 import TicTacToe from "./TicTacToe";
 import GameTimer from "./GameTimer";
-import GameState from "./GameState";
+import GameState, { STATE } from "./GameState";
 
 export default class GameManager {
   private game: TicTacToe;
   private players: [Player, Player];
   private gameState: GameState;
+  private gameTimer: GameTimer;
   score: [number, number];
-  gameTimer: GameTimer;
   turn: number;
 
   constructor(score: [number, number] = [0, 0], turn: number = 0) {
-    this.gameState = new GameState();
-    this.score = score;
-    this.gameTimer = new GameTimer(0, 1000);
-    this.turn = turn;
-    this.players = [new Player(), new Player()];
     this.game = new TicTacToe();
+    this.gameState = new GameState();
+    this.gameTimer = new GameTimer(0, 1000);
+    this.players = [new Player(), new Player()];
+    this.score = score;
+    this.turn = turn;
   }
 
   checkRow = (
@@ -185,33 +185,25 @@ export default class GameManager {
     const player = this.getPlayersBasedOnTurn(this.turn);
     const updated = this.game.onFillSquare(row, col, player);
     if (!updated) return false;
-    this.updateTurn(this.turn);
-    this.game.printBoard();
     const hasWinner = this.isWin(row, col, this.game, player);
-    if (hasWinner) {
-      callback(hasWinner);
-    }
+    if (hasWinner) callback(hasWinner);
+    this.gameState.updateTurn();
+    this.game.printBoard();
     return true;
   };
-  /* 
-  updateGameState = (state: string, callback: Function): void => {
-    if (state === GAME_STATE.STOP) {
-      this.gameTimer.stop();
-    } else {
-      this.gameTimer.initialize(callback);
-    }
-    this.state = state;
-  }; */
 
-  updateScore(index: number, scores: [number, number]): [number, number] {
-    if (!index) {
-      return [scores[0]++, scores[1]];
-    } else {
-      return [scores[0], scores[1]++];
+  updateGameState = (newState: string, callback: Function): void => {
+    switch (newState) {
+      case STATE.PAUSED.name:
+        this.gameTimer.pause();
+        break;
+      case STATE.STARTED.name:
+        this.gameTimer.initialize(callback);
+        break;
+      case STATE.STOPPED.name:
+        this.gameTimer.stop(callback);
+        break;
     }
-  }
-
-  updateTurn = (turn: number) => {
-    this.turn = turn ? 0 : 1;
+    return;
   };
 }
