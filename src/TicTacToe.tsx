@@ -44,6 +44,11 @@ export default class TicTacToe implements GameBoard {
     return true;
   }
 
+  onOverrideSquare = (row: number, col: number, player: Player): boolean => {
+    this.board[row][col] = player.getSymbol();
+    return true;
+  }
+
   getSquare(row: number, col: number): string {
     const isValid = this.isValidSquare(row, col);
     if (!isValid) return '';

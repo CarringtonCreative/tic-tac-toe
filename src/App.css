@@ -12,11 +12,14 @@
 .Board-Container {
   display: flex;
   flex-direction: column;
+  margin: 0.5em auto;
 }
 
 .Board-Row {
   display: flex;
   flex-flow: row wrap;
+  justify-content: center;
+  align-items: center;
 }
 
 .Board-Square {
