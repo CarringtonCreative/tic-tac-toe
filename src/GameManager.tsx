@@ -1,31 +1,21 @@
 import Player from "./Player";
 import TicTacToe from "./TicTacToe";
-
-export const GAME_STATE = {
-  PAUSE: "Pause",
-  STOP: "Stop",
-  START: "Start",
-};
+import GameTimer from "./GameTimer";
+import GameState from "./GameState";
 
 export default class GameManager {
   private game: TicTacToe;
   private players: [Player, Player];
-  state: string;
+  private gameState: GameState;
   score: [number, number];
-  timer: number;
-  timerId: number;
+  gameTimer: GameTimer;
   turn: number;
 
-  constructor(
-    score: [number, number] = [0, 0],
-    timer: number = 0,
-    turn: number = 0
-  ) {
-    this.state = GAME_STATE.STOP;
+  constructor(score: [number, number] = [0, 0], turn: number = 0) {
+    this.gameState = new GameState();
     this.score = score;
-    this.timer = timer;
+    this.gameTimer = new GameTimer(0, 1000);
     this.turn = turn;
-    this.timerId = 0;
     this.players = [new Player(), new Player()];
     this.game = new TicTacToe();
   }
@@ -126,10 +116,6 @@ export default class GameManager {
     return this.turn === 0 ? this.players[0] : this.players[1];
   };
 
-  getTimer = (): number => {
-    return this.timer;
-  };
-
   initializePlayers = () => {
     if (this.players[0] && !this.players[0].getSymbol()) {
       this.players[0].setSymbol("x");
@@ -147,16 +133,12 @@ export default class GameManager {
   ): boolean => {
     const isRowWin = this.checkRow(row, symbol, board);
     const isColumnWin = this.checkColumn(col, symbol, board);
-    console.log("Is row win?", isRowWin, row);
-    console.log("Is column win?", isColumnWin, col);
     return isRowWin || isColumnWin;
   };
 
   isDiagonalWin = (board: [string[]], symbol: string): boolean => {
     const isLeftDiagonalWin = this.checkLeftDiagonal(board, symbol);
     const isRightDiagonalWin = this.checkRightDiagonal(board, symbol);
-    console.log("Is left diagonal win?", isLeftDiagonalWin);
-    console.log("Is right diagonal win?", isRightDiagonalWin);
     return isLeftDiagonalWin || isRightDiagonalWin;
   };
 
@@ -168,11 +150,8 @@ export default class GameManager {
     return axialWin || diagonalWin;
   };
 
-  startGame = (): void => {
-    const interval = 1000;
-    this.startTimer(interval, () => {
-      this.timer += interval;
-    });
+  startGame = (onUpdateTimeCallback: Function): void => {
+    this.gameTimer.initialize(onUpdateTimeCallback);
     this.game.initialize();
     this.initializePlayers();
   };
@@ -214,17 +193,15 @@ export default class GameManager {
     }
     return true;
   };
-
-  updateGameState = (state: string): void => {
+  /* 
+  updateGameState = (state: string, callback: Function): void => {
     if (state === GAME_STATE.STOP) {
-      this.stopTimer(this.timerId);
+      this.gameTimer.stop();
     } else {
-      this.timerId = this.startTimer(1000, () => {
-        this.timer += 1000;
-      });
+      this.gameTimer.initialize(callback);
     }
     this.state = state;
-  };
+  }; */
 
   updateScore(index: number, scores: [number, number]): [number, number] {
     if (!index) {

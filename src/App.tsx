@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import "./App.css";
-import GameManager, { GAME_STATE } from "./GameManager";
+import GameManager from "./GameManager";
 
 const modalStyles = {
   content: {
@@ -23,15 +23,19 @@ const gameManager = new GameManager();
 const initialEditForm = { symbol: "" };
 
 function App() {
-  const [gameState, setGameState] = useState(GAME_STATE.START);
+  //const [gameState, setGameState] = useState(GAME_STATE.START);
   const [gameBoard, setGameBoard] = useState(gameManager.getGame());
   const [editPlayer, setEditPlayer] = useState(false);
   const [editPlayerIndex, setEditPlayerIndex] = useState(0);
   const [editModalIsOpen, setEditModalIsOpen] = React.useState(false);
   const [editModalForm, setEditModalForm] = React.useState(initialEditForm);
+  const [gameTime, setGameTime] = useState("00:00:00");
 
   useEffect(() => {
-    gameManager.startGame();
+    gameManager.startGame((data: { formatedTime: string }) => {
+      const { formatedTime } = data;
+      setGameTime(formatedTime);
+    });
     const board = gameManager.getGame();
     setGameBoard(board);
   }, []);
@@ -75,10 +79,10 @@ function App() {
   };
 
   const onUpdateGameState = (gameState: string): void => {
-    let newState =
-      gameState === GAME_STATE.STOP ? GAME_STATE.START : GAME_STATE.STOP;
-    gameManager.updateGameState(newState);
-    setGameState(newState);
+    //let newState =
+    //gameState === GAME_STATE.STOP ? GAME_STATE.START : GAME_STATE.STOP;
+    //gameManager.updateGameState(newState);
+    //setGameState(newState);
   };
 
   const renderBoard = (gameBoard: [string[]]) => {
@@ -107,11 +111,12 @@ function App() {
     );
   };
 
-  const renderGameControls = () => {
+  const renderGameHeader = () => {
     return (
       <>
-        <h2>{gameManager.getTimer()}</h2>
-        <button
+        <h2 style={{ margin: "0.15em" }}>Tic Tac Toe</h2>
+        <h6 style={{ margin: "0.15em" }}>{gameTime}</h6>
+        {/* <button
           style={{
             color: "#fff",
             borderRadius: "0.5em",
@@ -128,7 +133,7 @@ function App() {
           }}
         >
           {gameState}
-        </button>
+        </button> */}
       </>
     );
   };
@@ -268,10 +273,10 @@ function App() {
 
   return (
     <div className="App-Container">
-      {renderEditPlayerModal(gameManager)}
-      <h2>Tic Tac Toe</h2>
-      {renderPlayers()}
+      {renderGameHeader()}
       {renderBoard(gameBoard)}
+      {renderEditPlayerModal(gameManager)}
+      {renderPlayers()}
     </div>
   );
 }
