@@ -1,106 +1,121 @@
 import Player from "./Player";
 import TicTacToe from "./TicTacToe";
 import GameTimer from "./GameTimer";
-import GameState from "./GameState";
+import GameState, { STATE } from "./GameState";
+import GameSquare from "./GameSquare";
 
 export default class GameManager {
   private game: TicTacToe;
   private players: [Player, Player];
   private gameState: GameState;
+  private gameTimer: GameTimer;
   score: [number, number];
-  gameTimer: GameTimer;
   turn: number;
 
   constructor(score: [number, number] = [0, 0], turn: number = 0) {
-    this.gameState = new GameState();
-    this.score = score;
-    this.gameTimer = new GameTimer(0, 1000);
-    this.turn = turn;
-    this.players = [new Player(), new Player()];
     this.game = new TicTacToe();
+    this.gameState = new GameState();
+    this.gameTimer = new GameTimer(0, 1000);
+    this.players = [new Player(), new Player()];
+    this.score = score;
+    this.turn = turn;
   }
 
   checkRow = (
     row: number,
     playerSymbol: string,
-    board: [string[]]
-  ): boolean => {
+    board: [GameSquare[]]
+  ): { isRowWin: boolean; rowData: number[][] } => {
     let col = 0;
-    let previous = board[row][col];
+    let previous = board[row][col].getValue();
     let exploredRow = col === board[row].length;
+    let rowData = [[row, col]];
     while (!exploredRow) {
-      const current = board[row][col++];
+      const current = board[row][col++].getValue();
       const symbolStreak = previous === current && current === playerSymbol;
       exploredRow = col === board[row].length;
+      rowData.push([row, col]);
       if (symbolStreak && exploredRow) {
-        return true;
+        return { isRowWin: true, rowData };
       } else if (!symbolStreak || exploredRow) {
-        return false;
+        return { isRowWin: false, rowData: [] };
       }
     }
-    return false;
+    return { isRowWin: false, rowData: [] };
   };
 
   checkColumn = (
     col: number,
     playerSymbol: string,
-    board: [string[]]
-  ): boolean => {
+    board: [GameSquare[]]
+  ): { isColumnWin: boolean; columnData: number[][] } => {
     let row = 0;
-    let previous = board[row][col];
+    let previous = board[row][col].getValue();
     let exploredColumn = row === board.length;
+    let columnData = [[row, col]];
     while (!exploredColumn) {
-      const current = board[row++][col];
+      const current = board[row++][col].getValue();
       const symbolStreak = previous === current && current === playerSymbol;
       exploredColumn = row === board.length;
+      columnData.push([row, col]);
       if (symbolStreak && exploredColumn) {
-        return true;
+        return { isColumnWin: true, columnData };
       } else if (!symbolStreak || exploredColumn) {
-        return false;
+        return { isColumnWin: false, columnData: [] };
       }
     }
-    return false;
+    return { isColumnWin: false, columnData: [] };
   };
 
-  checkLeftDiagonal = (board: [string[]], playerSymbol: string): boolean => {
+  checkLeftDiagonal = (
+    board: [GameSquare[]],
+    playerSymbol: string
+  ): { isLeftDiagonalWin: boolean; leftDiagonalData: number[][] } => {
     let row = 0;
     let col = 0;
-    let previous = board[row][col];
+    let previous = board[row][col].getValue();
     let exploredDiagonal = row === board.length - 1;
+    let leftDiagonalData = [[row, col]];
     while (!exploredDiagonal) {
-      let current = board[++row][++col];
+      let current = board[++row][++col].getValue();
       let symbolStreak = previous === current && current === playerSymbol;
       exploredDiagonal = row === board.length - 1;
+      leftDiagonalData.push([row, col]);
       if (symbolStreak && exploredDiagonal) {
-        return true;
+        return { isLeftDiagonalWin: true, leftDiagonalData };
       } else if (!symbolStreak || exploredDiagonal) {
-        return false;
+        return { isLeftDiagonalWin: false, leftDiagonalData: [] };
       }
       previous = current;
     }
-    return false;
+    return { isLeftDiagonalWin: false, leftDiagonalData: [] };
   };
 
-  checkRightDiagonal = (board: [string[]], playerSymbol: string): boolean => {
+  checkRightDiagonal = (
+    board: [GameSquare[]],
+    playerSymbol: string
+  ): { isRightDiagonalWin: boolean; rightDiagonalData: number[][] } => {
     let row = 0;
     let col = board.length - 1;
-    let previous = board[row][col];
+    let previous = board[row][col].getValue();
     let exploredDiagonal = col === 0;
+    let rightDiagonalData = [[row, col]];
     while (!exploredDiagonal) {
-      let current = board[++row][--col];
+      let current = board[++row][--col].getValue();
       let symbolStreak = previous === current && current === playerSymbol;
       exploredDiagonal = row === board.length - 1 && col === 0;
+      rightDiagonalData.push([row, col]);
       if (symbolStreak && exploredDiagonal) {
-        return true;
+        return { isRightDiagonalWin: true, rightDiagonalData };
       } else if (!symbolStreak || exploredDiagonal) {
-        return false;
+        return { isRightDiagonalWin: false, rightDiagonalData: [] };
       }
       previous = current;
     }
-    return false;
+    return { isRightDiagonalWin: false, rightDiagonalData: [] };
   };
 
-  getGame = (): [string[]] => {
+  getGame = (): [GameSquare[]] => {
     return this.game.getBoard();
   };
 
@@ -128,17 +143,28 @@ export default class GameManager {
   isAxialWin = (
     row: number,
     col: number,
-    board: [string[]],
+    board: [GameSquare[]],
     symbol: string
   ): boolean => {
-    const isRowWin = this.checkRow(row, symbol, board);
-    const isColumnWin = this.checkColumn(col, symbol, board);
+    const { isRowWin, rowData } = this.checkRow(row, symbol, board);
+    const { isColumnWin, columnData } = this.checkColumn(col, symbol, board);
+    if (isRowWin) this.gameState.updateWinCondition(rowData);
+    if (isColumnWin) this.gameState.updateWinCondition(columnData);
     return isRowWin || isColumnWin;
   };
 
-  isDiagonalWin = (board: [string[]], symbol: string): boolean => {
-    const isLeftDiagonalWin = this.checkLeftDiagonal(board, symbol);
-    const isRightDiagonalWin = this.checkRightDiagonal(board, symbol);
+  isDiagonalWin = (board: [GameSquare[]], symbol: string): boolean => {
+    const { isLeftDiagonalWin, leftDiagonalData } = this.checkLeftDiagonal(
+      board,
+      symbol
+    );
+    const { isRightDiagonalWin, rightDiagonalData } = this.checkRightDiagonal(
+      board,
+      symbol
+    );
+    if (isLeftDiagonalWin) this.gameState.updateWinCondition(leftDiagonalData);
+    if (isRightDiagonalWin)
+      this.gameState.updateWinCondition(rightDiagonalData);
     return isLeftDiagonalWin || isRightDiagonalWin;
   };
 
@@ -147,7 +173,19 @@ export default class GameManager {
     const symbol = player.getSymbol();
     const axialWin = this.isAxialWin(row, col, board, symbol);
     const diagonalWin = this.isDiagonalWin(board, symbol);
+    if (axialWin || diagonalWin) {
+      this.onHighlightWinCondition();
+    }
     return axialWin || diagonalWin;
+  };
+
+  onHighlightWinCondition = () => {
+    const condition = this.gameState.getWinCondition();
+    for (let square of condition) {
+      const row = Number(square[0]);
+      const col = Number(square[1]);
+      this.game.onChangeSquareColor(row, col, "#abc");
+    }
   };
 
   startGame = (onUpdateTimeCallback: Function): void => {
@@ -173,7 +211,7 @@ export default class GameManager {
       for (let row = 0; row < board.length; row++) {
         for (let col = 0; col < board[row].length; col++) {
           const square = board[row][col];
-          if (square === oldSymbol) {
+          if (square.getValue() === oldSymbol) {
             this.game.onOverrideSquare(row, col, player);
           }
         }
@@ -185,33 +223,25 @@ export default class GameManager {
     const player = this.getPlayersBasedOnTurn(this.turn);
     const updated = this.game.onFillSquare(row, col, player);
     if (!updated) return false;
-    this.updateTurn(this.turn);
+    this.turn = this.gameState.updateTurn();
     this.game.printBoard();
     const hasWinner = this.isWin(row, col, this.game, player);
-    if (hasWinner) {
-      callback(hasWinner);
-    }
+    if (hasWinner) callback(hasWinner);
     return true;
   };
-  /* 
-  updateGameState = (state: string, callback: Function): void => {
-    if (state === GAME_STATE.STOP) {
-      this.gameTimer.stop();
-    } else {
-      this.gameTimer.initialize(callback);
-    }
-    this.state = state;
-  }; */
 
-  updateScore(index: number, scores: [number, number]): [number, number] {
-    if (!index) {
-      return [scores[0]++, scores[1]];
-    } else {
-      return [scores[0], scores[1]++];
+  updateGameState = (newState: string, callback: Function): void => {
+    switch (newState) {
+      case STATE.PAUSED.name:
+        this.gameTimer.pause();
+        break;
+      case STATE.STARTED.name:
+        this.gameTimer.initialize(callback);
+        break;
+      case STATE.STOPPED.name:
+        this.gameTimer.stop(callback);
+        break;
     }
-  }
-
-  updateTurn = (turn: number) => {
-    this.turn = turn ? 0 : 1;
+    return;
   };
 }

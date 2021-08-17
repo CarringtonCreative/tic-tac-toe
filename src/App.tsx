@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import "./App.css";
 import GameManager from "./GameManager";
+import GameSquare from "./GameSquare";
+import { STATE } from "./GameState";
+import { PlayIcon, PauseIcon, StopIcon, EditIcon } from "./icons";
 
 const modalStyles = {
   content: {
@@ -23,7 +26,7 @@ const gameManager = new GameManager();
 const initialEditForm = { symbol: "" };
 
 function App() {
-  //const [gameState, setGameState] = useState(GAME_STATE.START);
+  const [gameState, setGameState] = useState(STATE.STARTED.name);
   const [gameBoard, setGameBoard] = useState(gameManager.getGame());
   const [editPlayer, setEditPlayer] = useState(false);
   const [editPlayerIndex, setEditPlayerIndex] = useState(0);
@@ -78,21 +81,26 @@ function App() {
     }
   };
 
-  const onUpdateGameState = (gameState: string): void => {
-    //let newState =
-    //gameState === GAME_STATE.STOP ? GAME_STATE.START : GAME_STATE.STOP;
-    //gameManager.updateGameState(newState);
-    //setGameState(newState);
+  const onUpdateGameState = (newState: string): void => {
+    if (newState === gameState) return;
+    gameManager.updateGameState(newState, (data: { formatedTime: string }) => {
+      const { formatedTime } = data;
+      setGameTime(formatedTime);
+    });
+    setGameState(newState);
   };
 
-  const renderBoard = (gameBoard: [string[]]) => {
+  const renderBoard = (gameBoard: [GameSquare[]]) => {
     return (
       <div className="Board-Container">
         {gameBoard.map((row, rowIndex) => (
           <div key={`row-${rowIndex}`} className="Board-Row">
-            {row.map((col, colIndex) => {
+            {row.map((square, colIndex) => {
+              const value = square.getValue();
+              const hexColor = square.getHexColor();
               return (
                 <div
+                  style={{ backgroundColor: hexColor }}
                   key={`col-${colIndex}`}
                   className="Board-Square"
                   data-col={colIndex}
@@ -101,7 +109,8 @@ function App() {
                     onSquareClick(event);
                   }}
                 >
-                  {col}
+                  {value}
+                  {/* {col} */}
                 </div>
               );
             })}
@@ -116,24 +125,63 @@ function App() {
       <>
         <h2 style={{ margin: "0.15em" }}>Tic Tac Toe</h2>
         <h6 style={{ margin: "0.15em" }}>{gameTime}</h6>
-        {/* <button
+        <div
           style={{
-            color: "#fff",
-            borderRadius: "0.5em",
-            fontSize: "1em",
-            padding: "0.25em",
-            height: "2em",
-            width: "6em",
-            border: "0.15em solid #fff",
-            cursor: "pointer",
-            backgroundColor: "transparent",
-          }}
-          onClick={() => {
-            onUpdateGameState(gameState);
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
           }}
         >
-          {gameState}
-        </button> */}
+          <div
+            style={{
+              padding: "0.25em",
+              height: "1.5em",
+              width: "1.5em",
+              cursor: "pointer",
+              backgroundColor: "transparent",
+              margin: "0.15em",
+            }}
+            onClick={() => onUpdateGameState(STATE.STOPPED.name)}
+          >
+            <StopIcon
+              height={"1em"}
+              fill={gameState === STATE.STOPPED.name ? "#3fa8c0" : "#fff"}
+            />
+          </div>
+          <div
+            style={{
+              padding: "0.25em",
+              height: "1.5em",
+              width: "1.5em",
+              cursor: "pointer",
+              backgroundColor: "transparent",
+              margin: "0.15em",
+            }}
+            onClick={() => onUpdateGameState(STATE.PAUSED.name)}
+          >
+            <PauseIcon
+              height={"1em"}
+              fill={gameState === STATE.PAUSED.name ? "#3fa8c0" : "#fff"}
+            />
+          </div>
+          <div
+            style={{
+              padding: "0.25em",
+              height: "1.5em",
+              width: "1.5em",
+              cursor: "pointer",
+              backgroundColor: "transparent",
+              margin: "0.15em",
+            }}
+            onClick={() => onUpdateGameState(STATE.STARTED.name)}
+          >
+            <PlayIcon
+              height={"1em"}
+              fill={gameState === STATE.STARTED.name ? "#3fa8c0" : "#fff"}
+            />
+          </div>
+        </div>
       </>
     );
   };
@@ -144,39 +192,37 @@ function App() {
       <div
         style={{
           display: "flex",
-          flexDirection: "row",
-          justifyContent: "space-between",
+          flexDirection: "column",
+          justifyContent: "center",
           alignItems: "center",
           margin: "1em auto",
         }}
       >
         {players.map((player, playerIndex) => {
+          const symbol = player.getSymbol().toUpperCase();
           return (
             <div
               key={`player-${playerIndex}`}
               style={{
                 display: "flex",
                 flexDirection: "row",
-                justifyContent: "center",
+                justifyContent: "flex-start",
                 alignItems: "center",
               }}
             >
               <h6 style={{ margin: "0em 0.5em" }}>
-                Player {player.getSymbol().toUpperCase()}
+                Player <span style={{ color: "#3fa8c0" }}>{symbol}</span>
               </h6>
               <div
                 style={{
-                  margin: "0em 0.5em",
-                  borderRadius: "0.25em",
+                  margin: "0.25em",
                   backgroundColor: "transparent",
-                  border: "0.1em solid #FFCD32",
-                  padding: "0.15em 0.5em",
-                  fontSize: "0.5em",
+                  padding: "0.15em",
                   cursor: "pointer",
                 }}
                 onClick={() => onEditPlayer(playerIndex)}
               >
-                edit
+                <EditIcon height={"0.75em"} width={"0.75em"} fill={"#FFCD32"} />
               </div>
             </div>
           );
@@ -273,9 +319,9 @@ function App() {
 
   return (
     <div className="App-Container">
+      {renderEditPlayerModal(gameManager)}
       {renderGameHeader()}
       {renderBoard(gameBoard)}
-      {renderEditPlayerModal(gameManager)}
       {renderPlayers()}
     </div>
   );
