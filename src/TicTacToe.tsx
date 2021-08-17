@@ -1,16 +1,21 @@
-import GameBoard from './GameBoard';
-import Player from './Player';
+import GameBoard from "./GameBoard";
+import GameSquare from "./GameSquare";
+import Player from "./Player";
 
 export const GAME_SYMBOL = {
-  BLANK: '•'
+  BLANK: "•",
 };
 
 export default class TicTacToe implements GameBoard {
   rows: number;
   cols: number;
-  board: [string[]];
+  board: [GameSquare[]];
 
-  constructor(board: [string[]] = [[]], rows: number = 3, cols: number = 3) {
+  constructor(
+    board: [GameSquare[]] = [[]],
+    rows: number = 3,
+    cols: number = 3
+  ) {
     this.board = board;
     this.rows = rows;
     this.cols = cols;
@@ -20,7 +25,7 @@ export default class TicTacToe implements GameBoard {
     for (let col = 0; col < this.cols; col++) {
       this.board[col] = [];
       for (let row = 0; row < this.rows; row++) {
-        this.board[col][row] = GAME_SYMBOL.BLANK;
+        this.board[col][row] = new GameSquare(row, col, GAME_SYMBOL.BLANK);
       }
     }
   }
@@ -29,33 +34,37 @@ export default class TicTacToe implements GameBoard {
     if (row < 0 || row >= this.rows) return false;
     if (col < 0 || col >= this.cols) return false;
     return true;
-  }
+  };
 
   isEmptySquare(row: number, col: number): boolean {
     const isValid = this.isValidSquare(row, col);
     if (!isValid) return isValid;
-    return this.board[row][col] === GAME_SYMBOL.BLANK;
+    return this.board[row][col].getValue() === GAME_SYMBOL.BLANK;
   }
 
   onFillSquare = (row: number, col: number, player: Player): boolean => {
     const isEmpty = this.isEmptySquare(row, col);
     if (!isEmpty) return false;
-    this.board[row][col] = player.getSymbol();
+    this.board[row][col].setValue(player.getSymbol());
     return true;
-  }
+  };
+
+  onChangeSquareColor = (row: number, col: number, color: string) => {
+    this.board[row][col].setHexColor(color);
+  };
 
   onOverrideSquare = (row: number, col: number, player: Player): boolean => {
-    this.board[row][col] = player.getSymbol();
+    this.board[row][col].setValue(player.getSymbol());
     return true;
-  }
+  };
 
   getSquare(row: number, col: number): string {
     const isValid = this.isValidSquare(row, col);
-    if (!isValid) return '';
-    return this.board[row][col];
+    if (!isValid) return "";
+    return this.board[row][col].getValue();
   }
 
-  getBoard(): [string[]] {
+  getBoard(): [GameSquare[]] {
     return Object.assign([...this.board]);
   }
 
@@ -63,7 +72,7 @@ export default class TicTacToe implements GameBoard {
     const squares = [];
     for (let col = 0; col < this.cols; col++) {
       for (let row = 0; row < this.rows; row++) {
-        if (this.board[col][row] === GAME_SYMBOL.BLANK) {
+        if (this.board[col][row].getValue() === GAME_SYMBOL.BLANK) {
           squares.push([col, row]);
         }
       }
@@ -72,15 +81,15 @@ export default class TicTacToe implements GameBoard {
   }
 
   printBoard(): void {
-    let str = '- - - - -';
+    let str = "- - - - -";
     for (let col = 0; col < this.cols; col++) {
-      str += '\n| ';
+      str += "\n| ";
       for (let row = 0; row < this.rows; row++) {
-        str += this.board[col][row] + ' ';
+        str += this.board[col][row].getValue() + " ";
       }
-      str += '|';
+      str += "|";
     }
-    str += '\n- - - - -';
+    str += "\n- - - - -";
     console.log(str);
   }
 
@@ -88,7 +97,7 @@ export default class TicTacToe implements GameBoard {
     for (let col = 0; col < this.cols; col++) {
       this.board[col] = [];
       for (let row = 0; row < this.rows; row++) {
-        this.board[col][row] = GAME_SYMBOL.BLANK;
+        this.board[col][row] = new GameSquare(row, col, GAME_SYMBOL.BLANK);
       }
     }
   }

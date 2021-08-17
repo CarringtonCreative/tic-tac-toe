@@ -8,6 +8,7 @@ export default class GameState {
   private turn: number;
   private score: [number, number];
   private state: string;
+  private winCondition: number[][];
 
   constructor(
     score: [number, number] = [0, 0],
@@ -17,11 +18,16 @@ export default class GameState {
     this.turn = turn;
     this.score = score;
     this.state = state;
+    this.winCondition = [];
   }
 
   getTurn = (): number => this.turn;
+
   getScore = (): [number, number] => this.score;
+
   getState = (): string => this.state;
+
+  getWinCondition = (): string => Object.assign([...this.winCondition]);
 
   updateState = (newState: string): string => {
     switch (newState) {
@@ -50,13 +56,20 @@ export default class GameState {
     return this.state;
   };
 
-  updateScore = (): void => {
+  updateScore = (): [number, number] => {
     this.score = this.turn
       ? [this.score[0], ++this.score[1]]
       : [++this.score[0], this.score[1]];
+    return this.score;
   };
 
-  updateTurn = (): void => {
+  updateTurn = (): number => {
     this.turn = this.turn ? 0 : 1;
+    return this.turn;
+  };
+
+  updateWinCondition = (data: number[][]) => {
+    if (!data) return;
+    this.winCondition = data;
   };
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import "./App.css";
 import GameManager from "./GameManager";
+import GameSquare from "./GameSquare";
 import { STATE } from "./GameState";
 import { PlayIcon, PauseIcon, StopIcon, EditIcon } from "./icons";
 
@@ -87,19 +88,19 @@ function App() {
       setGameTime(formatedTime);
     });
     setGameState(newState);
-
-    //const newState = gameManager.updateGameState(gameState);
-    //setGameState(newState);
   };
 
-  const renderBoard = (gameBoard: [string[]]) => {
+  const renderBoard = (gameBoard: [GameSquare[]]) => {
     return (
       <div className="Board-Container">
         {gameBoard.map((row, rowIndex) => (
           <div key={`row-${rowIndex}`} className="Board-Row">
-            {row.map((col, colIndex) => {
+            {row.map((square, colIndex) => {
+              const value = square.getValue();
+              const hexColor = square.getHexColor();
               return (
                 <div
+                  style={{ backgroundColor: hexColor }}
                   key={`col-${colIndex}`}
                   className="Board-Square"
                   data-col={colIndex}
@@ -108,7 +109,8 @@ function App() {
                     onSquareClick(event);
                   }}
                 >
-                  {col}
+                  {value}
+                  {/* {col} */}
                 </div>
               );
             })}
