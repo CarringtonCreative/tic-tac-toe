@@ -4,11 +4,16 @@ export default class GameSquare {
   private row: number;
   private value: string;
 
-  constructor(row: number, column: number, value: string, hexColor?: string) {
-    this.row = row;
-    this.column = column;
+  constructor(
+    row?: number,
+    column?: number,
+    value?: string,
+    hexColor?: string
+  ) {
+    this.row = row || 0;
+    this.column = column || 0;
     this.hexColor = hexColor || "#fff";
-    this.value = value;
+    this.value = value || "•";
   }
 
   getRow = (): number => this.row;
