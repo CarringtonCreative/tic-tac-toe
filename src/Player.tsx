@@ -15,17 +15,17 @@ export default class Player {
   constructor(
     name?: string,
     symbol?: string | PLAYER_SYMBOL,
-    wins: number = 0,
-    loses: number = 0
+    wins?: number,
+    loses?: number
   ) {
     this.id = uuidv4();
     this.name = name || "";
     this.symbol = symbol || "";
-    this.wins = wins;
-    this.loses = loses;
+    this.wins = wins || 0;
+    this.loses = loses || 0;
   }
 
-  getSymbol = () => {
+  getSymbol = (): string => {
     return this.symbol;
   };
 

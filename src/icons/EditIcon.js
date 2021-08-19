@@ -1,5 +1,6 @@
 import * as React from "react";
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 function SvgEdit(props) {
   return (
     <svg
@@ -17,4 +18,3 @@ function SvgEdit(props) {
 }
 
 export default SvgEdit;
-

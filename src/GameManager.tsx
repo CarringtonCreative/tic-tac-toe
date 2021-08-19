@@ -4,21 +4,29 @@ import GameTimer from "./GameTimer";
 import GameState, { STATE } from "./GameState";
 import GameSquare from "./GameSquare";
 
+type Props = {
+  onClick: (event: React.MouseEvent<HTMLElement>) => void;
+  initializeCallback: (data: { time: number; formatedTime: string }) => void;
+  stopCallback: (data: { time: number; formatedTime: string }) => void;
+  startGameCallback: (data: { formatedTime: string }) => void;
+  startCallback: () => void;
+  updateSquareCallback: (data: { isWin: boolean; player: Player }) => void;
+  updateGameStateCallback: (data: { formatedTime: string }) => void;
+};
+
 export default class GameManager {
   private game: TicTacToe;
   private players: [Player, Player];
   private gameState: GameState;
   private gameTimer: GameTimer;
-  score: [number, number];
   turn: number;
 
-  constructor(score: [number, number] = [0, 0], turn: number = 0) {
+  constructor(turn?: number) {
     this.game = new TicTacToe();
     this.gameState = new GameState();
     this.gameTimer = new GameTimer(0, 1000);
     this.players = [new Player(), new Player()];
-    this.score = score;
-    this.turn = turn;
+    this.turn = turn || 0;
   }
 
   checkRow = (
@@ -29,17 +37,18 @@ export default class GameManager {
     let col = 0;
     let previous = board[row][col].getValue();
     let exploredRow = col === board[row].length;
-    let rowData = [[row, col]];
+    const rowData = [[row, col]];
     while (!exploredRow) {
       const current = board[row][col++].getValue();
       const symbolStreak = previous === current && current === playerSymbol;
       exploredRow = col === board[row].length;
-      rowData.push([row, col]);
       if (symbolStreak && exploredRow) {
         return { isRowWin: true, rowData };
       } else if (!symbolStreak || exploredRow) {
         return { isRowWin: false, rowData: [] };
       }
+      rowData.push([row, col]);
+      previous = current;
     }
     return { isRowWin: false, rowData: [] };
   };
@@ -52,17 +61,18 @@ export default class GameManager {
     let row = 0;
     let previous = board[row][col].getValue();
     let exploredColumn = row === board.length;
-    let columnData = [[row, col]];
+    const columnData = [[row, col]];
     while (!exploredColumn) {
       const current = board[row++][col].getValue();
       const symbolStreak = previous === current && current === playerSymbol;
       exploredColumn = row === board.length;
-      columnData.push([row, col]);
       if (symbolStreak && exploredColumn) {
         return { isColumnWin: true, columnData };
       } else if (!symbolStreak || exploredColumn) {
         return { isColumnWin: false, columnData: [] };
       }
+      columnData.push([row, col]);
+      previous = current;
     }
     return { isColumnWin: false, columnData: [] };
   };
@@ -75,10 +85,10 @@ export default class GameManager {
     let col = 0;
     let previous = board[row][col].getValue();
     let exploredDiagonal = row === board.length - 1;
-    let leftDiagonalData = [[row, col]];
+    const leftDiagonalData = [[row, col]];
     while (!exploredDiagonal) {
-      let current = board[++row][++col].getValue();
-      let symbolStreak = previous === current && current === playerSymbol;
+      const current = board[++row][++col].getValue();
+      const symbolStreak = previous === current && current === playerSymbol;
       exploredDiagonal = row === board.length - 1;
       leftDiagonalData.push([row, col]);
       if (symbolStreak && exploredDiagonal) {
@@ -86,6 +96,7 @@ export default class GameManager {
       } else if (!symbolStreak || exploredDiagonal) {
         return { isLeftDiagonalWin: false, leftDiagonalData: [] };
       }
+      leftDiagonalData.push([row, col]);
       previous = current;
     }
     return { isLeftDiagonalWin: false, leftDiagonalData: [] };
@@ -99,17 +110,17 @@ export default class GameManager {
     let col = board.length - 1;
     let previous = board[row][col].getValue();
     let exploredDiagonal = col === 0;
-    let rightDiagonalData = [[row, col]];
+    const rightDiagonalData = [[row, col]];
     while (!exploredDiagonal) {
-      let current = board[++row][--col].getValue();
-      let symbolStreak = previous === current && current === playerSymbol;
+      const current = board[++row][--col].getValue();
+      const symbolStreak = previous === current && current === playerSymbol;
       exploredDiagonal = row === board.length - 1 && col === 0;
-      rightDiagonalData.push([row, col]);
       if (symbolStreak && exploredDiagonal) {
         return { isRightDiagonalWin: true, rightDiagonalData };
       } else if (!symbolStreak || exploredDiagonal) {
         return { isRightDiagonalWin: false, rightDiagonalData: [] };
       }
+      rightDiagonalData.push([row, col]);
       previous = current;
     }
     return { isRightDiagonalWin: false, rightDiagonalData: [] };
@@ -128,10 +139,10 @@ export default class GameManager {
   };
 
   getPlayersBasedOnTurn = (turn: number): Player => {
-    return this.turn === 0 ? this.players[0] : this.players[1];
+    return turn === 0 ? this.players[0] : this.players[1];
   };
 
-  initializePlayers = () => {
+  initializePlayers = (): void => {
     if (this.players[0] && !this.players[0].getSymbol()) {
       this.players[0].setSymbol("x");
     }
@@ -168,7 +179,12 @@ export default class GameManager {
     return isLeftDiagonalWin || isRightDiagonalWin;
   };
 
-  isWin = (row: number, col: number, game: TicTacToe, player: Player) => {
+  isWin = (
+    row: number,
+    col: number,
+    game: TicTacToe,
+    player: Player
+  ): boolean => {
     const board = game.getBoard();
     const symbol = player.getSymbol();
     const axialWin = this.isAxialWin(row, col, board, symbol);
@@ -179,30 +195,36 @@ export default class GameManager {
     return axialWin || diagonalWin;
   };
 
-  onHighlightWinCondition = () => {
+  onHighlightWinCondition = (): void => {
     const condition = this.gameState.getWinCondition();
-    for (let square of condition) {
+    for (let i = 0; i < condition.length; i++) {
+      const square = condition[i];
       const row = Number(square[0]);
       const col = Number(square[1]);
+      console.log(row, col);
       this.game.onChangeSquareColor(row, col, "#abc");
     }
   };
 
-  startGame = (onUpdateTimeCallback: Function): void => {
-    this.gameTimer.initialize(onUpdateTimeCallback);
+  getScores = (): [number, number] => {
+    return this.gameState.getScores();
+  };
+
+  startGame = (callback: Props["startGameCallback"]): void => {
+    this.gameTimer.initialize(callback);
     this.game.initialize();
     this.initializePlayers();
   };
 
-  startTimer = (interval: number, callback: Function): number => {
+  startTimer = (interval: number, callback: Props["startCallback"]): number => {
     return window.setInterval(callback, interval);
   };
 
-  stopTimer = (timerId: number) => {
+  stopTimer = (timerId: number): void => {
     clearInterval(timerId);
   };
 
-  updatePlayerSymbol = (playerIndex: number, newSymbol: string) => {
+  updatePlayerSymbol = (playerIndex: number, newSymbol: string): void => {
     const player = this.players[playerIndex];
     if (player) {
       const board = this.game.getBoard();
@@ -219,18 +241,25 @@ export default class GameManager {
     }
   };
 
-  updateSquare = (row: number, col: number, callback: Function): boolean => {
+  updateSquare = (
+    row: number,
+    col: number,
+    callback: Props["updateSquareCallback"]
+  ): boolean => {
     const player = this.getPlayersBasedOnTurn(this.turn);
     const updated = this.game.onFillSquare(row, col, player);
     if (!updated) return false;
     this.turn = this.gameState.updateTurn();
     this.game.printBoard();
-    const hasWinner = this.isWin(row, col, this.game, player);
-    if (hasWinner) callback(hasWinner);
+    const isWin = this.isWin(row, col, this.game, player);
+    if (isWin) callback({ isWin, player });
     return true;
   };
 
-  updateGameState = (newState: string, callback: Function): void => {
+  updateGameState = (
+    newState: string,
+    callback: Props["updateGameStateCallback"]
+  ): void => {
     switch (newState) {
       case STATE.PAUSED.name:
         this.gameTimer.pause();

@@ -1,12 +1,19 @@
+type Props = {
+  onClick: (event: React.MouseEvent<HTMLElement>) => void;
+  initializeCallback: (data: { time: number; formatedTime: string }) => void;
+  stopCallback: (data: { time: number; formatedTime: string }) => void;
+  startCallback: () => void;
+};
+
 export default class GameTimer {
   private interval: number;
   private time: number;
   private timerId: number;
   private totalIntervals: number;
 
-  constructor(time: number = 0, interval: number = 1000) {
-    this.interval = interval;
-    this.time = time;
+  constructor(time: number, interval: number) {
+    this.interval = interval || 1000;
+    this.time = time || 0;
     this.timerId = 0;
     this.totalIntervals = 0;
   }
@@ -30,7 +37,7 @@ export default class GameTimer {
 
   getTotalIntervals = (): number => this.totalIntervals;
 
-  initialize = (callback: Function): void => {
+  initialize = (callback: Props["initializeCallback"]): void => {
     this.timerId = this.start(this.interval, () => {
       this.totalIntervals++;
       this.time += this.interval;
@@ -43,11 +50,11 @@ export default class GameTimer {
     clearInterval(this.timerId);
   };
 
-  start = (interval: number, callback: Function): number => {
+  start = (interval: number, callback: Props["startCallback"]): number => {
     return window.setInterval(callback, interval);
   };
 
-  stop = (callback: Function): void => {
+  stop = (callback: Props["stopCallback"]): void => {
     clearInterval(this.timerId);
     this.reset();
     const formatedTime = this.format();

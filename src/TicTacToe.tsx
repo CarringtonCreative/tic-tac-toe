@@ -11,14 +11,10 @@ export default class TicTacToe implements GameBoard {
   cols: number;
   board: [GameSquare[]];
 
-  constructor(
-    board: [GameSquare[]] = [[]],
-    rows: number = 3,
-    cols: number = 3
-  ) {
-    this.board = board;
-    this.rows = rows;
-    this.cols = cols;
+  constructor(board?: [GameSquare[]], rows?: number, cols?: number) {
+    this.board = board || [[]];
+    this.rows = rows || 3;
+    this.cols = cols || 3;
   }
 
   initialize(): void {
@@ -30,7 +26,7 @@ export default class TicTacToe implements GameBoard {
     }
   }
 
-  isValidSquare = (row: number, col: number) => {
+  isValidSquare = (row: number, col: number): boolean => {
     if (row < 0 || row >= this.rows) return false;
     if (col < 0 || col >= this.cols) return false;
     return true;
@@ -49,7 +45,7 @@ export default class TicTacToe implements GameBoard {
     return true;
   };
 
-  onChangeSquareColor = (row: number, col: number, color: string) => {
+  onChangeSquareColor = (row: number, col: number, color: string): void => {
     this.board[row][col].setHexColor(color);
   };
 

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
-import "./App.css";
 import GameManager from "./GameManager";
 import GameSquare from "./GameSquare";
 import { STATE } from "./GameState";
 import { PlayIcon, PauseIcon, StopIcon, EditIcon } from "./icons";
+import Player from "./Player";
+import AppStyles from "./css/App.module.css";
 
 const modalStyles = {
   content: {
@@ -25,7 +26,7 @@ const modalStyles = {
 const gameManager = new GameManager();
 const initialEditForm = { symbol: "" };
 
-function App() {
+function App(): JSX.Element {
   const [gameState, setGameState] = useState(STATE.STARTED.name);
   const [gameBoard, setGameBoard] = useState(gameManager.getGame());
   const [editPlayer, setEditPlayer] = useState(false);
@@ -51,8 +52,10 @@ function App() {
     setEditModalIsOpen(false);
   };
 
-  const onCheckForWinner = (hasWinner: boolean) => {
-    alert(`Do we have a winner ${hasWinner}`);
+  const onCheckForWinner = (result: { isWin: boolean; player: Player }) => {
+    const { player } = result;
+    const symbol = player.getSymbol();
+    alert(`Player ${symbol} won`);
   };
 
   const onEditPlayer = (index: number) => {
@@ -92,9 +95,9 @@ function App() {
 
   const renderBoard = (gameBoard: [GameSquare[]]) => {
     return (
-      <div className="Board-Container">
+      <div className={AppStyles.BoardContainer}>
         {gameBoard.map((row, rowIndex) => (
-          <div key={`row-${rowIndex}`} className="Board-Row">
+          <div key={`row-${rowIndex}`} className={AppStyles.BoardRow}>
             {row.map((square, colIndex) => {
               const value = square.getValue();
               const hexColor = square.getHexColor();
@@ -102,7 +105,7 @@ function App() {
                 <div
                   style={{ backgroundColor: hexColor }}
                   key={`col-${colIndex}`}
-                  className="Board-Square"
+                  className={AppStyles.BoardSquare}
                   data-col={colIndex}
                   data-row={rowIndex}
                   onClick={(event) => {
@@ -110,7 +113,6 @@ function App() {
                   }}
                 >
                   {value}
-                  {/* {col} */}
                 </div>
               );
             })}
@@ -120,67 +122,82 @@ function App() {
     );
   };
 
+  const renderGameControls = () => {
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            padding: "0.25em",
+            height: "1.5em",
+            width: "1.5em",
+            cursor: "pointer",
+            backgroundColor: "transparent",
+            margin: "0.15em",
+          }}
+          onClick={() => onUpdateGameState(STATE.STOPPED.name)}
+        >
+          <StopIcon
+            height={"1em"}
+            fill={gameState === STATE.STOPPED.name ? "#3fa8c0" : "#fff"}
+          />
+        </div>
+        <div
+          style={{
+            padding: "0.25em",
+            height: "1.5em",
+            width: "1.5em",
+            cursor: "pointer",
+            backgroundColor: "transparent",
+            margin: "0.15em",
+          }}
+          onClick={() => onUpdateGameState(STATE.PAUSED.name)}
+        >
+          <PauseIcon
+            height={"1em"}
+            fill={gameState === STATE.PAUSED.name ? "#3fa8c0" : "#fff"}
+          />
+        </div>
+        <div
+          style={{
+            padding: "0.25em",
+            height: "1.5em",
+            width: "1.5em",
+            cursor: "pointer",
+            backgroundColor: "transparent",
+            margin: "0.15em",
+          }}
+          onClick={() => onUpdateGameState(STATE.STARTED.name)}
+        >
+          <PlayIcon
+            height={"1em"}
+            fill={gameState === STATE.STARTED.name ? "#3fa8c0" : "#fff"}
+          />
+        </div>
+      </div>
+    );
+  };
+
   const renderGameHeader = () => {
     return (
       <>
         <h2 style={{ margin: "0.15em" }}>Tic Tac Toe</h2>
-        <h6 style={{ margin: "0.15em" }}>{gameTime}</h6>
         <div
           style={{
             display: "flex",
             flexDirection: "row",
-            justifyContent: "center",
+            justifyContent: "space-between",
             alignItems: "center",
           }}
         >
-          <div
-            style={{
-              padding: "0.25em",
-              height: "1.5em",
-              width: "1.5em",
-              cursor: "pointer",
-              backgroundColor: "transparent",
-              margin: "0.15em",
-            }}
-            onClick={() => onUpdateGameState(STATE.STOPPED.name)}
-          >
-            <StopIcon
-              height={"1em"}
-              fill={gameState === STATE.STOPPED.name ? "#3fa8c0" : "#fff"}
-            />
-          </div>
-          <div
-            style={{
-              padding: "0.25em",
-              height: "1.5em",
-              width: "1.5em",
-              cursor: "pointer",
-              backgroundColor: "transparent",
-              margin: "0.15em",
-            }}
-            onClick={() => onUpdateGameState(STATE.PAUSED.name)}
-          >
-            <PauseIcon
-              height={"1em"}
-              fill={gameState === STATE.PAUSED.name ? "#3fa8c0" : "#fff"}
-            />
-          </div>
-          <div
-            style={{
-              padding: "0.25em",
-              height: "1.5em",
-              width: "1.5em",
-              cursor: "pointer",
-              backgroundColor: "transparent",
-              margin: "0.15em",
-            }}
-            onClick={() => onUpdateGameState(STATE.STARTED.name)}
-          >
-            <PlayIcon
-              height={"1em"}
-              fill={gameState === STATE.STARTED.name ? "#3fa8c0" : "#fff"}
-            />
-          </div>
+          {renderScore()}
+          <h6 style={{ margin: "0.15em" }}>{gameTime}</h6>
         </div>
       </>
     );
@@ -192,10 +209,10 @@ function App() {
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
           justifyContent: "center",
           alignItems: "center",
-          margin: "1em auto",
+          margin: "0.25em auto",
         }}
       >
         {players.map((player, playerIndex) => {
@@ -224,6 +241,38 @@ function App() {
               >
                 <EditIcon height={"0.75em"} width={"0.75em"} fill={"#FFCD32"} />
               </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderScore = () => {
+    const score = gameManager.getScores();
+    return (
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          margin: "0.25em auto",
+        }}
+      >
+        <h6 style={{ margin: "0em 0.5em" }}>Scores</h6>
+        {score.map((score, index) => {
+          return (
+            <div
+              key={`score-${index}`}
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "flex-start",
+                alignItems: "center",
+              }}
+            >
+              <h6 style={{ margin: "0em 0.5em", color: "#3fa8c0" }}>{score}</h6>
             </div>
           );
         })}
@@ -318,11 +367,12 @@ function App() {
   };
 
   return (
-    <div className="App-Container">
+    <div className={AppStyles.AppContainer}>
       {renderEditPlayerModal(gameManager)}
       {renderGameHeader()}
-      {renderBoard(gameBoard)}
       {renderPlayers()}
+      {renderBoard(gameBoard)}
+      {renderGameControls()}
     </div>
   );
 }
