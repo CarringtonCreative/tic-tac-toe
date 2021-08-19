@@ -30,7 +30,7 @@ export default class Player {
   };
 
   setSymbol = (symbol: string | PLAYER_SYMBOL): void => {
-    if (symbol.length > 2) {
+    if (!symbol || symbol.length > 2 || symbol.length < 1) {
       const message = "Update failed. Player's symbol can only be length of 1.";
       throw new Error(message);
     }
