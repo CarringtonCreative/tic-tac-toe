@@ -6,11 +6,11 @@ export const STATE = {
 
 export default class GameState {
   private turn: number;
-  private score: [number, number];
+  private score: number[];
   private state: string;
   private winCondition: number[][];
 
-  constructor(score?: [number, number], turn?: number, state?: string) {
+  constructor(score?: number[], turn?: number, state?: string) {
     this.turn = turn || 0;
     this.score = score || [0, 0];
     this.state = state || STATE.STOPPED.name;
@@ -19,11 +19,11 @@ export default class GameState {
 
   getTurn = (): number => this.turn;
 
-  getScores = (): [number, number] => Object.assign([...this.score]);
+  getScores = (): number[] => Object.assign([...this.score]);
 
   getState = (): string => this.state;
 
-  getWinCondition = (): string => Object.assign([...this.winCondition]);
+  getWinCondition = (): number[][] => Object.assign([...this.winCondition]);
 
   updateState = (newState: string): string => {
     switch (newState) {
@@ -52,7 +52,7 @@ export default class GameState {
     return this.state;
   };
 
-  updateScore = (): [number, number] => {
+  updateScore = (): number[] => {
     this.score = this.turn
       ? [this.score[0], ++this.score[1]]
       : [++this.score[0], this.score[1]];
