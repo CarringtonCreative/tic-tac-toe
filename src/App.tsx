@@ -36,9 +36,9 @@ function App(): JSX.Element {
   const [gameTime, setGameTime] = useState("00:00:00");
 
   useEffect(() => {
-    gameManager.startGame((data: { formatedTime: string }) => {
-      const { formatedTime } = data;
-      setGameTime(formatedTime);
+    gameManager.startGame((data: { formattedTime: string }) => {
+      const { formattedTime } = data;
+      setGameTime(formattedTime);
     });
     const board = gameManager.getGame();
     setGameBoard(board);
@@ -86,9 +86,9 @@ function App(): JSX.Element {
 
   const onUpdateGameState = (newState: string): void => {
     if (newState === gameState) return;
-    gameManager.updateGameState(newState, (data: { formatedTime: string }) => {
-      const { formatedTime } = data;
-      setGameTime(formatedTime);
+    gameManager.updateGameState(newState, (data: { formattedTime: string }) => {
+      const { formattedTime } = data;
+      setGameTime(formattedTime);
     });
     setGameState(newState);
   };

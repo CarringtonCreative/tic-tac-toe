@@ -1,7 +1,6 @@
 type Props = {
-  onClick: (event: React.MouseEvent<HTMLElement>) => void;
-  initializeCallback: (data: { time: number; formatedTime: string }) => void;
-  stopCallback: (data: { time: number; formatedTime: string }) => void;
+  initializeCallback: (data: { time: number; formattedTime: string }) => void;
+  stopCallback: (data: { time: number; formattedTime: string }) => void;
   startCallback: () => void;
 };
 
@@ -10,12 +9,14 @@ export default class GameTimer {
   private time: number;
   private timerId: number;
   private totalIntervals: number;
+  private formattedTime: string;
 
-  constructor(time: number, interval: number) {
+  constructor(time?: number, interval?: number) {
     this.interval = interval || 1000;
     this.time = time || 0;
     this.timerId = 0;
     this.totalIntervals = 0;
+    this.formattedTime = "00:00:00";
   }
 
   private format = (): string => {
@@ -35,14 +36,13 @@ export default class GameTimer {
     return String(digit < 10 ? `0${digit}` : digit);
   };
 
-  getTotalIntervals = (): number => this.totalIntervals;
-
-  initialize = (callback: Props["initializeCallback"]): void => {
+  initialize = (callback?: Props["initializeCallback"]): void => {
     this.timerId = this.start(this.interval, () => {
       this.totalIntervals++;
       this.time += this.interval;
-      const formatedTime = this.format();
-      callback({ time: this.time, formatedTime });
+      this.formattedTime = this.format();
+      callback &&
+        callback({ time: this.time, formattedTime: this.formattedTime });
     });
   };
 
@@ -54,11 +54,12 @@ export default class GameTimer {
     return window.setInterval(callback, interval);
   };
 
-  stop = (callback: Props["stopCallback"]): void => {
+  stop = (callback?: Props["stopCallback"]): void => {
     clearInterval(this.timerId);
     this.reset();
-    const formatedTime = this.format();
-    callback({ time: this.time, formatedTime });
+    this.formattedTime = this.format();
+    callback &&
+      callback({ time: this.time, formattedTime: this.formattedTime });
   };
 
   reset = (): void => {
@@ -66,4 +67,14 @@ export default class GameTimer {
     this.time = 0;
     this.timerId = 0;
   };
+
+  getInterval = (): number => this.interval;
+
+  getTime = (): number => this.time;
+
+  getTimerId = (): number => this.timerId;
+
+  getTotalIntervals = (): number => this.totalIntervals;
+
+  getFormattedTime = (): string => this.formattedTime;
 }
