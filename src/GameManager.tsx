@@ -6,12 +6,12 @@ import GameSquare from "./GameSquare";
 
 type Props = {
   onClick: (event: React.MouseEvent<HTMLElement>) => void;
-  initializeCallback: (data: { time: number; formatedTime: string }) => void;
-  stopCallback: (data: { time: number; formatedTime: string }) => void;
-  startGameCallback: (data: { formatedTime: string }) => void;
+  initializeCallback: (data: { time: number; formattedTime: string }) => void;
+  stopCallback: (data: { time: number; formattedTime: string }) => void;
+  startGameCallback: (data: { formattedTime: string }) => void;
   startCallback: () => void;
   updateSquareCallback: (data: { isWin: boolean; player: Player }) => void;
-  updateGameStateCallback: (data: { formatedTime: string }) => void;
+  updateGameStateCallback: (data: { formattedTime: string }) => void;
 };
 
 export default class GameManager {
@@ -206,7 +206,7 @@ export default class GameManager {
     }
   };
 
-  getScores = (): [number, number] => {
+  getScores = (): number[] => {
     return this.gameState.getScores();
   };
 
