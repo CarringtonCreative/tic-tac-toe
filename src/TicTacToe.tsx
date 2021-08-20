@@ -54,6 +54,10 @@ export default class TicTacToe implements GameBoard {
     return true;
   };
 
+  getSquareColor = (row: number, col: number): string => {
+    return this.board[row][col].getHexColor();
+  };
+
   getSquare(row: number, col: number): string {
     const isValid = this.isValidSquare(row, col);
     if (!isValid) return "";
@@ -63,6 +67,10 @@ export default class TicTacToe implements GameBoard {
   getBoard(): [GameSquare[]] {
     return Object.assign([...this.board]);
   }
+
+  getNumberOfColumns = (): number => this.cols;
+
+  getNumberOfRows = (): number => this.rows;
 
   getEmptySquares(): number[][] {
     const squares = [];
