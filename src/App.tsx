@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Modal from "react-modal";
 import GameManager from "./GameManager";
 import GameSquare from "./GameSquare";
 import { STATE } from "./GameState";
-import { PlayIcon, PauseIcon, StopIcon, EditIcon } from "./icons";
+import { EditIcon } from "./icons";
 import Player from "./Player";
 import AppStyles from "./css/App.module.css";
 
@@ -27,6 +27,7 @@ const gameManager = new GameManager();
 const initialEditForm = { symbol: "" };
 
 function App(): JSX.Element {
+  const [isGameOver, setIsGameOver] = useState(false);
   const [gameState, setGameState] = useState(STATE.STARTED.name);
   const [gameBoard, setGameBoard] = useState(gameManager.getGame());
   const [editPlayer, setEditPlayer] = useState(false);
@@ -35,14 +36,32 @@ function App(): JSX.Element {
   const [editModalForm, setEditModalForm] = React.useState(initialEditForm);
   const [gameTime, setGameTime] = useState("00:00:00");
 
-  useEffect(() => {
-    gameManager.startGame((data: { formattedTime: string }) => {
+  const onCheckForWinner = useCallback(
+    (result: { isWin: boolean; player: Player }) => {
+      const { player } = result;
+      const symbol = player.getSymbol();
+      gameManager.updateScore();
+
+      setIsGameOver(!isGameOver);
+      alert(`Player ${symbol} won`);
+    },
+    [isGameOver]
+  );
+
+  const onGameLoop = useCallback(
+    (data: { formattedTime: string }) => {
       const { formattedTime } = data;
       setGameTime(formattedTime);
-    });
+      gameManager.onMoveComputerPlayer(onCheckForWinner);
+    },
+    [onCheckForWinner]
+  );
+
+  useEffect(() => {
+    gameManager.startGame(onGameLoop);
     const board = gameManager.getGame();
     setGameBoard(board);
-  }, []);
+  }, [onGameLoop]);
 
   const openEditModal = () => {
     setEditModalIsOpen(true);
@@ -50,12 +69,6 @@ function App(): JSX.Element {
 
   const closeEditModal = () => {
     setEditModalIsOpen(false);
-  };
-
-  const onCheckForWinner = (result: { isWin: boolean; player: Player }) => {
-    const { player } = result;
-    const symbol = player.getSymbol();
-    alert(`Player ${symbol} won`);
   };
 
   const onEditPlayer = (index: number) => {
@@ -89,6 +102,7 @@ function App(): JSX.Element {
     gameManager.updateGameState(newState, (data: { formattedTime: string }) => {
       const { formattedTime } = data;
       setGameTime(formattedTime);
+      if (newState !== STATE.STARTED.name) gameManager.clearGame();
     });
     setGameState(newState);
   };
@@ -123,63 +137,29 @@ function App(): JSX.Element {
   };
 
   const renderGameControls = () => {
+    const states = [
+      STATE.RESTARTED,
+      STATE.PAUSED,
+      STATE.STOPPED,
+      STATE.STARTED,
+    ];
+    //gameManager.getGame.getGameMode();
+
     return (
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{
-            padding: "0.25em",
-            height: "1.5em",
-            width: "1.5em",
-            cursor: "pointer",
-            backgroundColor: "transparent",
-            margin: "0.15em",
-          }}
-          onClick={() => onUpdateGameState(STATE.STOPPED.name)}
-        >
-          <StopIcon
-            height={"1em"}
-            fill={gameState === STATE.STOPPED.name ? "#3fa8c0" : "#fff"}
-          />
-        </div>
-        <div
-          style={{
-            padding: "0.25em",
-            height: "1.5em",
-            width: "1.5em",
-            cursor: "pointer",
-            backgroundColor: "transparent",
-            margin: "0.15em",
-          }}
-          onClick={() => onUpdateGameState(STATE.PAUSED.name)}
-        >
-          <PauseIcon
-            height={"1em"}
-            fill={gameState === STATE.PAUSED.name ? "#3fa8c0" : "#fff"}
-          />
-        </div>
-        <div
-          style={{
-            padding: "0.25em",
-            height: "1.5em",
-            width: "1.5em",
-            cursor: "pointer",
-            backgroundColor: "transparent",
-            margin: "0.15em",
-          }}
-          onClick={() => onUpdateGameState(STATE.STARTED.name)}
-        >
-          <PlayIcon
-            height={"1em"}
-            fill={gameState === STATE.STARTED.name ? "#3fa8c0" : "#fff"}
-          />
-        </div>
+      <div className={AppStyles.GameControlsContainer}>
+        {states.map((state) => {
+          const { icon, label, name } = state;
+          return (
+            <div
+              key={name}
+              className={AppStyles.GameControlContainer}
+              onClick={() => onUpdateGameState(name)}
+            >
+              {icon}
+              <span className={AppStyles.GameControlLabel}>{label}</span>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -232,14 +212,14 @@ function App(): JSX.Element {
               </h6>
               <div
                 style={{
-                  margin: "0.25em",
+                  margin: "0em 0.15em",
                   backgroundColor: "transparent",
                   padding: "0.15em",
                   cursor: "pointer",
                 }}
                 onClick={() => onEditPlayer(playerIndex)}
               >
-                <EditIcon height={"0.75em"} width={"0.75em"} fill={"#FFCD32"} />
+                <EditIcon height={"0.5em"} width={"0.5em"} fill={"#FFCD32"} />
               </div>
             </div>
           );

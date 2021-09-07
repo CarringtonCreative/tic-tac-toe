@@ -1,21 +1,57 @@
+import React from "react";
+import { PlayIcon, PauseIcon, ResetIcon, StopIcon } from "./icons";
+
 export const STATE = {
-  PAUSED: { name: "paused", label: "Pause" },
-  STOPPED: { name: "stopped", label: "Stop" },
-  STARTED: { name: "started", label: "Start" },
+  PAUSED: {
+    name: "paused",
+    label: "Pause",
+    icon: <PauseIcon height={"1em"} width={"1em"} fill={"#fff"} />,
+  },
+  RESTARTED: {
+    name: "restarted",
+    label: "Restart",
+    icon: <ResetIcon height={"1em"} width={"1em"} fill={"#fff"} />,
+  },
+  STOPPED: {
+    name: "stopped",
+    label: "Stop",
+    icon: <StopIcon height={"1em"} width={"1em"} fill={"#fff"} />,
+  },
+  STARTED: {
+    name: "started",
+    label: "Start",
+    icon: <PlayIcon height={"1em"} width={"1em"} fill={"#fff"} />,
+  },
+};
+
+export const MODE = {
+  PVP: { name: "pvp", label: "Player vs Player" },
+  PVC: { name: "pvc", label: "Player vs Computer" },
+  CVC: { name: "cvc", label: "Computer vs Computer" },
 };
 
 export default class GameState {
+  private mode: { name: string; label: string };
   private turn: number;
   private score: number[];
   private state: string;
   private winCondition: number[][];
 
-  constructor(score?: number[], turn?: number, state?: string) {
+  constructor(
+    score?: number[],
+    turn?: number,
+    state?: string,
+    mode?: { name: string; label: string }
+  ) {
     this.turn = turn || 0;
     this.score = score || [0, 0];
     this.state = state || STATE.STOPPED.name;
     this.winCondition = [];
+    this.mode = mode || MODE.PVC;
   }
+
+  getGameMode = (): { name: string; label: string } =>
+    Object.assign({ ...this.mode });
 
   getTurn = (): number => this.turn;
 
@@ -30,6 +66,15 @@ export default class GameState {
       case STATE.PAUSED.name:
         if (this.state === STATE.STARTED.name) {
           this.state = STATE.PAUSED.name;
+        }
+        break;
+      case STATE.RESTARTED.name:
+        if (
+          this.state === STATE.PAUSED.name ||
+          this.state === STATE.STARTED.name ||
+          this.state === STATE.STOPPED.name
+        ) {
+          this.state = STATE.RESTARTED.name;
         }
         break;
       case STATE.STARTED.name:

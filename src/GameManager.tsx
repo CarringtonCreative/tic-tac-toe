@@ -1,7 +1,8 @@
 import Player from "./Player";
+import ComputerPlayer from "./ComputerPlayer";
 import TicTacToe from "./TicTacToe";
 import GameTimer from "./GameTimer";
-import GameState, { STATE } from "./GameState";
+import GameState, { MODE, STATE } from "./GameState";
 import GameSquare from "./GameSquare";
 
 type Props = {
@@ -16,18 +17,34 @@ type Props = {
 
 export default class GameManager {
   private game: TicTacToe;
-  private players: [Player, Player];
+  private players: [Player, Player | ComputerPlayer];
+  private gameMode: string;
   private gameState: GameState;
   private gameTimer: GameTimer;
   turn: number;
 
-  constructor(turn?: number) {
+  constructor(turn?: number, mode?: string) {
     this.game = new TicTacToe();
     this.gameState = new GameState();
+    this.gameMode = mode || MODE.PVC.name;
     this.gameTimer = new GameTimer(0, 1000);
-    this.players = [new Player(), new Player()];
+    this.players = this.getNewPlayers(mode);
     this.turn = turn || 0;
   }
+
+  getNewPlayers = (mode?: string): [Player, Player] => {
+    if (!mode) return [new Player(), new ComputerPlayer()];
+    switch (mode) {
+      case MODE.PVP.name:
+        return [new Player(), new Player()];
+      case MODE.PVC.name:
+        return [new Player(), new ComputerPlayer()];
+      case MODE.CVC.name:
+        return [new ComputerPlayer(), new ComputerPlayer()];
+      default:
+        return [new Player(), new ComputerPlayer()];
+    }
+  };
 
   checkRow = (
     row: number,
@@ -77,6 +94,23 @@ export default class GameManager {
     return { isColumnWin: false, columnData: [] };
   };
 
+  checkForWin = (
+    row: number,
+    col: number
+  ): { isWin: boolean; player: Player } => {
+    const player = this.getPlayersBasedOnTurn(this.turn);
+    const updated = this.game.onFillSquare(row, col, player);
+    if (!updated)
+      return {
+        isWin: false,
+        player,
+      };
+    this.turn = this.gameState.updateTurn();
+    this.game.printBoard();
+    const isWin = this.isWin(row, col, this.game, player);
+    return { isWin, player };
+  };
+
   checkLeftDiagonal = (
     board: [GameSquare[]],
     playerSymbol: string
@@ -116,6 +150,7 @@ export default class GameManager {
       const symbolStreak = previous === current && current === playerSymbol;
       exploredDiagonal = row === board.length - 1 && col === 0;
       if (symbolStreak && exploredDiagonal) {
+        rightDiagonalData.push([row, col]);
         return { isRightDiagonalWin: true, rightDiagonalData };
       } else if (!symbolStreak || exploredDiagonal) {
         return { isRightDiagonalWin: false, rightDiagonalData: [] };
@@ -124,6 +159,10 @@ export default class GameManager {
       previous = current;
     }
     return { isRightDiagonalWin: false, rightDiagonalData: [] };
+  };
+
+  clearGame = (): void => {
+    this.game.resetBoard();
   };
 
   getGame = (): [GameSquare[]] => {
@@ -140,6 +179,10 @@ export default class GameManager {
 
   getPlayersBasedOnTurn = (turn: number): Player => {
     return turn === 0 ? this.players[0] : this.players[1];
+  };
+
+  getScores = (): number[] => {
+    return this.gameState.getScores();
   };
 
   initializePlayers = (): void => {
@@ -197,6 +240,8 @@ export default class GameManager {
 
   onHighlightWinCondition = (): void => {
     const condition = this.gameState.getWinCondition();
+    console.log(condition);
+
     for (let i = 0; i < condition.length; i++) {
       const square = condition[i];
       const row = Number(square[0]);
@@ -206,8 +251,13 @@ export default class GameManager {
     }
   };
 
-  getScores = (): number[] => {
-    return this.gameState.getScores();
+  onMoveComputerPlayer = (callback: Props["updateSquareCallback"]): boolean => {
+    const rows = this.game.getNumberOfRows();
+    const cols = this.game.getNumberOfColumns();
+    const point = (this.players[1] as ComputerPlayer).onMove(rows, cols);
+    const row = point.getRow();
+    const col = point.getColumn();
+    return this.updateSquare(row, col, callback);
   };
 
   startGame = (callback: Props["startGameCallback"]): void => {
@@ -224,6 +274,10 @@ export default class GameManager {
     clearInterval(timerId);
   };
 
+  /* updateWinCondition = (): void => {
+
+  }; */
+
   updatePlayerSymbol = (playerIndex: number, newSymbol: string): void => {
     const player = this.players[playerIndex];
     if (player) {
@@ -239,6 +293,10 @@ export default class GameManager {
         }
       }
     }
+  };
+
+  updateScore = (): void => {
+    this.gameState.updateScore();
   };
 
   updateSquare = (
@@ -263,6 +321,10 @@ export default class GameManager {
     switch (newState) {
       case STATE.PAUSED.name:
         this.gameTimer.pause();
+        break;
+      case STATE.RESTARTED.name:
+        this.gameTimer.stop(callback);
+        this.gameTimer.initialize(callback);
         break;
       case STATE.STARTED.name:
         this.gameTimer.initialize(callback);
